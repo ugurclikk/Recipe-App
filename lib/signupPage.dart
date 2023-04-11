@@ -1,0 +1,231 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
+import 'signinPage.dart';
+
+class MyRegister extends StatefulWidget {
+  const MyRegister({Key? key}) : super(key: key);
+
+  @override
+  _MyRegisterState createState() => _MyRegisterState();
+}
+
+class _MyRegisterState extends State<MyRegister> {
+  @override
+  Widget build(BuildContext context) {
+    late String _email, _password;
+    final _formKey = GlobalKey<FormState>();
+    return Container(
+      child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+        ),
+        backgroundColor: Colors.white,
+        body: Stack(children: [
+          Container(
+            padding: EdgeInsets.only(
+              right: 35,
+              left: 35,
+              // top: MediaQuery.of(context).size.height * 0.27
+            ),
+            child: Form(
+              key: _formKey,
+              child: SingleChildScrollView(
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        child: const Text(
+                          "Create an Account\n\nLet’s help you set up your account, it won’t take long.",
+                          style: TextStyle(color: Colors.black, fontSize: 16),
+                        ),
+                      ),
+                      SizedBox(
+                        height: 18,
+                      ),
+                      Text("Name"),
+                      const SizedBox(
+                        height: 10,
+                      ),
+                      TextField(
+                        decoration: InputDecoration(
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(color: Colors.black),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(color: Colors.black),
+                          ),
+                          hintText: 'Enter Name',
+                          hintStyle: const TextStyle(color: Colors.black),
+                        ),
+                      ),
+                      const SizedBox(
+                        height: 20,
+                      ),
+                      Text("E-Mail"),
+                      const SizedBox(
+                        height: 10,
+                      ),
+                      TextFormField(
+                        onSaved: (value) => _email = value!,
+                        decoration: InputDecoration(
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(color: Colors.black),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(color: Colors.black),
+                          ),
+                          hintText: 'Enter Email',
+                          hintStyle: const TextStyle(color: Colors.black),
+                        ),
+                      ),
+                      const SizedBox(
+                        height: 20,
+                      ),
+                      Text("Password"),
+                      const SizedBox(
+                        height: 10,
+                      ),
+                      TextFormField(
+                        onSaved: (value) => _password = value!,
+                        obscureText: true,
+                        decoration: InputDecoration(
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(color: Colors.black),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(color: Colors.black),
+                          ),
+                          hintText: 'Enter Password',
+                          hintStyle: const TextStyle(color: Colors.black),
+                        ),
+                      ),
+                      const SizedBox(
+                        height: 20,
+                      ),
+                      Text("Reconfirm Password"),
+                      const SizedBox(
+                        height: 10,
+                      ),
+                      TextField(
+                        obscureText: true,
+                        decoration: InputDecoration(
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(color: Colors.black),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(color: Colors.black),
+                          ),
+                          hintText: 'Retyping Password',
+                          hintStyle: const TextStyle(color: Colors.black),
+                        ),
+                      ),
+                      const SizedBox(
+                        height: 40,
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          if (_formKey.currentState!.validate()) {
+                            _formKey.currentState!.save();
+                            FirebaseAuth.instance
+                                .createUserWithEmailAndPassword(
+                                    email: _email, password: _password)
+                                .then((_) {
+                              /*  Navigator.of(context).pushReplacement(
+                          MaterialPageRoute(builder: (context) => HomePage()));*/
+                            });
+                          }
+                        },
+                        child: Container(
+                            decoration: BoxDecoration(
+                                color: Colors.green,
+                                borderRadius: BorderRadius.circular(8)),
+                            height: 60,
+                            width: 350,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  "Sing up",
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                                SizedBox(
+                                  width: 40,
+                                ),
+                                Icon(
+                                  Icons.arrow_right_alt,
+                                  color: Colors.white,
+                                )
+                              ],
+                            )),
+                      ),
+                      SizedBox(
+                        height: 5,
+                      ),
+                      Row(
+                        children: [
+                          Container(
+                            width: 125,
+                            child: Divider(
+                              thickness: 2,
+                            ),
+                          ),
+                          Text("Or Sign in With"),
+                          Container(
+                            width: 121,
+                            child: Divider(
+                              thickness: 2,
+                            ),
+                          )
+                        ],
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Image.asset(
+                            "assets/gbutton.png",
+                            width: 100,
+                            height: 100,
+                          ),
+                          Image.asset(
+                            "assets/fbbutton.png",
+                            width: 100,
+                            height: 100,
+                          ),
+                        ],
+                      ),
+                      Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text("Already a member?"),
+                            TextButton(
+                              onPressed: () {
+                                Get.to(MyLogin());
+                              },
+                              child: const Text(
+                                'Sign in',
+                                style: TextStyle(
+                                  color: Colors.orange,
+                                ),
+                              ),
+                            ),
+                          ]),
+                    ]),
+              ),
+            ),
+          ),
+        ]),
+      ),
+    );
+  }
+}
