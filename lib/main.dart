@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 import 'package:recipe/signinPage.dart';
 
+import 'recipecontrol.dart';
 import 'signupPage.dart';
 
 void main() async {
@@ -23,7 +24,18 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
-      home: Scaffold(body: MyLogin()),
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        body: MyLogin(),
+        floatingActionButton: FloatingActionButton(
+          backgroundColor: Color(0xff129575),
+          child: Icon(Icons.add),
+          onPressed: () {
+            //get paketi sadece router icin kullanılıyor flutter navigator sorun cıkardıgı için simdilik öğrenene kadar get kullanıyorum
+            Get.to(RecipeApp());
+          },
+        ),
+      ),
     );
   }
 }

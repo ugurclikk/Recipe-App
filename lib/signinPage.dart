@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:recipe/signupPage.dart';
 
+import 'recipecontrol.dart';
+
 class MyLogin extends StatefulWidget {
   const MyLogin({Key? key}) : super(key: key);
 
@@ -75,7 +77,13 @@ class _MyLoginState extends State<MyLogin> {
                         ),
                       ),
                       TextButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => RecipeApp(),
+                              ));
+                        },
                         child: const Text(
                           'Forgot Password?',
                           style: TextStyle(
@@ -91,12 +99,12 @@ class _MyLoginState extends State<MyLogin> {
                         onTap: () {
                           if (_formKey.currentState!.validate()) {
                             _formKey.currentState!.save();
-                            // TODO: Call Firebase auth library to sign in user
+
                             FirebaseAuth.instance
                                 .signInWithEmailAndPassword(
                                     email: _email, password: _password)
                                 .then((value) {});
-                          
+
                             showDialog(
                               context: context,
                               builder: (context) {
