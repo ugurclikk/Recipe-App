@@ -1,13 +1,38 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import 'controller/storage_controller.dart';
+import 'firebase_notification.dart';
+ FirebaseStorage storage = FirebaseStorage.instance;
 class RecipeApp extends StatefulWidget {
   @override
   _RecipeAppState createState() => _RecipeAppState();
 }
 
 class _RecipeAppState extends State<RecipeApp> {
+  Future<List<Map<String, dynamic>>> _loadImages() async {
+    List<Map<String, dynamic>> files = [];
+    FirebaseStorage storage = FirebaseStorage.instance;
+    final ListResult result = await storage.ref().list();
+    final List<Reference> allFiles = result.items;
+
+    await Future.forEach<Reference>(allFiles, (file) async {
+      final String fileUrl = await file.getDownloadURL();
+      final FullMetadata fileMeta = await file.getMetadata();
+      files.add({
+        "url": fileUrl,
+        "path": file.fullPath,
+        "uploaded_by": fileMeta.customMetadata?['uploaded_by'] ?? 'Nobody',
+        "description":
+            fileMeta.customMetadata?['description'] ?? 'No description'
+      });
+    });
+
+    return files;
+  }
+
   //Controllers for inputs
   final TextEditingController nameController = TextEditingController();
   final TextEditingController ingredientsController = TextEditingController();
@@ -24,8 +49,8 @@ class _RecipeAppState extends State<RecipeApp> {
           backgroundColor: Colors.transparent,
           elevation: 0,
           actions: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
+            const Padding(
+              padding: EdgeInsets.all(8.0),
               child: Icon(
                 Icons.menu,
                 color: Colors.black,
@@ -34,7 +59,7 @@ class _RecipeAppState extends State<RecipeApp> {
           ],
           leading: IconButton(
             onPressed: () => Navigator.pop(context),
-            icon: Icon(
+            icon: const Icon(
               Icons.arrow_back,
               color: Colors.black,
             ),
@@ -46,70 +71,100 @@ class _RecipeAppState extends State<RecipeApp> {
           builder:
               (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
             if (snapshot.hasError) {
-              return Text('Bir şeyler ters gitti!');
+              return const Text('Bir şeyler ters gitti!');
             }
 
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return Text('Yükleniyor...');
+              return const Text('Yükleniyor...');
             }
 
             List<QueryDocumentSnapshot> documents = snapshot.data!.docs;
 //List of exist recipe ui
-            return ListView.builder(
-              itemCount: documents.length,
-              itemBuilder: (BuildContext context, int index) {
-                DocumentSnapshot document = documents[index];
-                String ingredients = document['ingredients'];
-                String steps = document['steps'];
-                return ListTile(
-                  title: Text(document['name']),
-                  subtitle: Text(ingredients),
-                  onTap: () => _showRecipeDetails(context, document),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: Icon(Icons.edit),
-                        onPressed: () => _updateRecipe(document, context),
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.delete),
-                        onPressed: () => showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return AlertDialog(
-                              title: Text('Tarifi Sil'),
-                              content: Text(
-                                  'Bu tarifi silmek istediğinize emin misiniz?'),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context),
-                                  child: Text('İptal'),
+            return FutureBuilder(
+                future: _loadImages(),
+                builder:
+                    (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
+                  if (snapshot.hasData) {
+                    var lst = snapshot.data as List;
+                    return ListView.builder(
+                      itemCount: lst.length>=documents.length?documents.length:documents.length,
+                      itemBuilder: (BuildContext context, int index) {
+                        if (snapshot.connectionState == ConnectionState.done) {
+                          final Map<String, dynamic> image =
+                              snapshot.data![index];
+                          DocumentSnapshot document = documents[index];
+                          String ingredients = document['ingredients'];
+                          String steps = document['steps'];
+                          return ListTile(
+                            leading: Image.network(image["url"]),
+                            title: Text(document['name']),
+                            subtitle: Text(ingredients),
+                            onTap: () => _showRecipeDetails(context, document),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.edit),
+                                  onPressed: () =>
+                                      _updateRecipe(document, context),
                                 ),
-                                TextButton(
-                                  onPressed: () {
-                                    document.reference.delete();
-                                    Navigator.pop(context);
-                                  },
-                                  child: Text('Sil'),
+                                IconButton(
+                                  icon: const Icon(Icons.delete),
+                                  onPressed: () => showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                        title: const Text('Tarifi Sil'),
+                                        content: const Text(
+                                            'Bu tarifi silmek istediğinize emin misiniz?'),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () =>
+                                                Navigator.pop(context),
+                                            child: const Text('İptal'),
+                                          ),
+                                          TextButton(
+                                            onPressed: () async{
+                                              document.reference.delete();
+                                              await storage.ref(image["uploaded_by"]).delete();
+                                              Navigator.pop(context);
+                                            },
+                                            child: const Text('Sil'),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  ),
                                 ),
                               ],
-                            );
-                          },
-                        ),
+                            ),
+                          );
+                        } else {
+                          return Text("");
+                        }
+                      },
+                    );
+                  } else {
+                    return Center(
+                      child: CircularProgressIndicator(
+                        backgroundColor: Colors.cyanAccent,
+                        valueColor:
+                            new AlwaysStoppedAnimation<Color>(Colors.red),
                       ),
-                    ],
-                  ),
-                );
-              },
-            );
+                    );
+                  }
+                  ;
+                });
           },
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: Color(0xff129575),
-        child: Icon(Icons.add),
-        onPressed: () => _addRecipe(context),
+        backgroundColor: const Color(0xff129575),
+        child: const Icon(Icons.add),
+        onPressed: () async {
+          await initMessaging();
+          _addRecipe(context);
+        },
       ),
     );
   }
@@ -132,7 +187,7 @@ class _RecipeAppState extends State<RecipeApp> {
           content: SingleChildScrollView(
             child: ListBody(
               children: [
-                Text('Malzemeler: \n'),
+                const Text('Malzemeler: \n'),
                 Container(
                   width: 70,
                   height: 70,
@@ -143,11 +198,11 @@ class _RecipeAppState extends State<RecipeApp> {
                     },
                   ),
                 ),
-                SizedBox(height: 8.0),
-                Text("Tarif Özeti:\n"),
+                const SizedBox(height: 8.0),
+                const Text("Tarif Özeti:\n"),
                 Text(document['summary']),
-                SizedBox(height: 16.0),
-                Text('Tarif Aşamaları:'),
+                const SizedBox(height: 16.0),
+                const Text('Tarif Aşamaları:'),
                 Column(
                   children: List.generate(
                     stepsdetailed.length,
@@ -166,7 +221,7 @@ class _RecipeAppState extends State<RecipeApp> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text('Kapat'),
+              child: const Text('Kapat'),
             ),
           ],
         );
@@ -184,35 +239,35 @@ class _RecipeAppState extends State<RecipeApp> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Tarif Ekle'),
+          title: const Text('Tarif Ekle'),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextField(
                   controller: nameController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Tarif Adı',
                   ),
                 ),
-                SizedBox(height: 8.0),
+                const SizedBox(height: 8.0),
                 TextField(
                   controller: ingredientsController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Malzemeler (virgülle ayrılmış)',
                   ),
                 ),
-                SizedBox(height: 8.0),
+                const SizedBox(height: 8.0),
                 TextField(
                   controller: summaryController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Tarif Özeti',
                   ),
                 ),
-                SizedBox(height: 8.0),
+                const SizedBox(height: 8.0),
                 TextField(
                   controller: stepsController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Tarif Aşamaları (her satıra bir adım)',
                   ),
                   minLines: 3,
@@ -224,7 +279,7 @@ class _RecipeAppState extends State<RecipeApp> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text('İptal'),
+              child: const Text('İptal'),
             ),
             TextButton(
               onPressed: () async {
@@ -238,7 +293,8 @@ class _RecipeAppState extends State<RecipeApp> {
                     summary.isEmpty ||
                     stepsText.isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Lütfen tüm alanları doldurun')),
+                    const SnackBar(
+                        content: Text('Lütfen tüm alanları doldurun')),
                   );
                   return;
                 }
@@ -257,8 +313,17 @@ class _RecipeAppState extends State<RecipeApp> {
 
                 Navigator.pop(context);
               },
-              child: Text('Ekle'),
+              child: const Text('Ekle'),
             ),
+            TextButton(
+                onPressed: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const HomePagea(),
+                      ));
+                },
+                child: const Text("Resim ekle")),
           ],
         );
       },
@@ -266,24 +331,26 @@ class _RecipeAppState extends State<RecipeApp> {
   }
 
 //delete
-  void _deleteRecipe(DocumentSnapshot document) {
+  void _deleteRecipe(DocumentSnapshot document,String ref) {
+      FirebaseStorage storage = FirebaseStorage.instance;
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Tarifi Sil'),
-          content: Text('Bu tarifi silmek istediğinize emin misiniz?'),
+          title: const Text('Tarifi Sil'),
+          content: const Text('Bu tarifi silmek istediğinize emin misiniz?'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text('Hayır'),
+              child: const Text('Hayır'),
             ),
             TextButton(
               onPressed: () async {
                 await document.reference.delete();
+                await storage.ref(ref).delete();
                 Navigator.pop(context);
               },
-              child: Text('Evet'),
+              child: const Text('Evet'),
             ),
           ],
         );
@@ -308,20 +375,20 @@ Future<void> _updateRecipe(
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
-        title: Text('Tarifi Güncelle'),
+        title: const Text('Tarifi Güncelle'),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: nameController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   hintText: 'Tarif Adı',
                 ),
               ),
               TextField(
                 controller: ingredientsController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   hintText: 'Malzemeler (virgülle ayırın)',
                 ),
                 minLines: 3,
@@ -329,7 +396,7 @@ Future<void> _updateRecipe(
               ),
               TextField(
                 controller: summaryController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   hintText: 'Tarif Özeti',
                 ),
                 minLines: 3,
@@ -337,7 +404,7 @@ Future<void> _updateRecipe(
               ),
               TextField(
                 controller: stepsController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   hintText:
                       'Tarif Aşamaları (her adımı yeni bir satırda yazın)',
                 ),
@@ -350,7 +417,7 @@ Future<void> _updateRecipe(
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('İptal'),
+            child: const Text('İptal'),
           ),
           TextButton(
             onPressed: () async {
@@ -365,7 +432,7 @@ Future<void> _updateRecipe(
               });
               Navigator.pop(context);
             },
-            child: Text('Güncelle'),
+            child: const Text('Güncelle'),
           ),
         ],
       );
