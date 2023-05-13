@@ -1,11 +1,15 @@
+import 'package:cloud_functions/cloud_functions.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-import 'controller/storage_controller.dart';
+import 'storage_controller.dart';
 import 'firebase_notification.dart';
- FirebaseStorage storage = FirebaseStorage.instance;
+
+FirebaseStorage storage = FirebaseStorage.instance;
+
 class RecipeApp extends StatefulWidget {
   @override
   _RecipeAppState createState() => _RecipeAppState();
@@ -41,7 +45,7 @@ class _RecipeAppState extends State<RecipeApp> {
   //connection to the firebase
   final CollectionReference recipeCollection =
       FirebaseFirestore.instance.collection('recipes');
-
+  List<String> Comment = [];
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -87,7 +91,9 @@ class _RecipeAppState extends State<RecipeApp> {
                   if (snapshot.hasData) {
                     var lst = snapshot.data as List;
                     return ListView.builder(
-                      itemCount: lst.length>=documents.length?documents.length:documents.length,
+                      itemCount: lst.length >= documents.length
+                          ? documents.length
+                          : documents.length,
                       itemBuilder: (BuildContext context, int index) {
                         if (snapshot.connectionState == ConnectionState.done) {
                           final Map<String, dynamic> image =
@@ -124,9 +130,11 @@ class _RecipeAppState extends State<RecipeApp> {
                                             child: const Text('İptal'),
                                           ),
                                           TextButton(
-                                            onPressed: () async{
+                                            onPressed: () async {
                                               document.reference.delete();
-                                              await storage.ref(image["uploaded_by"]).delete();
+                                              await storage
+                                                  .ref(image["uploaded_by"])
+                                                  .delete();
                                               Navigator.pop(context);
                                             },
                                             child: const Text('Sil'),
@@ -171,7 +179,15 @@ class _RecipeAppState extends State<RecipeApp> {
 
 //read
   void _showRecipeDetails(BuildContext context, DocumentSnapshot document) {
+    /*final CollectionReference
+        collfordesign = // using for where and orderby function
+        FirebaseFirestore.instance
+            .collection('recipes')
+            .orderBy("", descending: false) as CollectionReference<Object?>;*/
+
+    TextEditingController controllcomment = TextEditingController();
     String ingredients = document['ingredients'];
+    List<dynamic> coCommnets = document["comments"];
     String steps = document['steps'];
 //separete operations
     List<String> stepsdetailed =
@@ -182,41 +198,91 @@ class _RecipeAppState extends State<RecipeApp> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
+        var _key = GlobalKey();
         return AlertDialog(
           title: Text(document['name']),
           content: SingleChildScrollView(
-            child: ListBody(
-              children: [
-                const Text('Malzemeler: \n'),
-                Container(
-                  width: 70,
-                  height: 70,
-                  child: ListView.builder(
-                    itemCount: ingredientsdetailed.length,
-                    itemBuilder: (context, index) {
-                      return Text(ingredientsdetailed[index]);
-                    },
-                  ),
-                ),
-                const SizedBox(height: 8.0),
-                const Text("Tarif Özeti:\n"),
-                Text(document['summary']),
-                const SizedBox(height: 16.0),
-                const Text('Tarif Aşamaları:'),
-                Column(
-                  children: List.generate(
-                    stepsdetailed.length,
-                    (index) => ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: Colors.orange,
-                        child: Text((index + 1).toString()),
-                      ),
-                      title: Text(stepsdetailed[index]),
+            child: Column(children: [
+              ListBody(
+                children: [
+                  const Text('Malzemeler: \n'),
+                  Container(
+                    width: 70,
+                    height: 70,
+                    child: ListView.builder(
+                      itemCount: ingredientsdetailed.length,
+                      itemBuilder: (context, index) {
+                        return Text(ingredientsdetailed[index]);
+                      },
                     ),
                   ),
-                ),
-              ],
-            ),
+                  const SizedBox(height: 8.0),
+                  const Text("Tarif Özeti:\n"),
+                  Text(document['summary']),
+                  const SizedBox(height: 16.0),
+                  const Text('Tarif Aşamaları:'),
+                  Column(
+                    children: List.generate(
+                      stepsdetailed.length,
+                      (index) => ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: Colors.orange,
+                          child: Text((index + 1).toString()),
+                        ),
+                        title: Text(stepsdetailed[index]),
+                      ),
+                    ),
+                  ),
+                  Text("Yorumlar:           Yorum Sayısı:${coCommnets.length}"),
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: List.generate(
+                      coCommnets.length,
+                      (int index) {
+                        return Text(document["comments"][index]);
+                      },
+                    ),
+                  )
+                ],
+              ),
+              Form(
+                  key: _key,
+                  child: TextFormField(
+                    controller: controllcomment,
+                    maxLines: null,
+                    validator: (value) {
+                      if (value!.isEmpty) {
+                        return 'Please enter a comment';
+                      }
+                      return null;
+                    },
+                    decoration: InputDecoration(
+                      hintText: 'Enter your comment',
+                      border: OutlineInputBorder(),
+                    ),
+                  )),
+              TextButton(
+                  onPressed: () async {
+                    Comment.add(controllcomment.text);
+                    var nameController = document['name'];
+                    var ingredientsController = document['ingredients'];
+                    var summaryController = document['summary'];
+                    var stepsController = document['steps'];
+                    await FirebaseFirestore.instance
+                        .collection('recipes')
+                        .doc(document.id)
+                        .update(({
+                          "name": nameController,
+                          "ingredients": ingredientsController,
+                          "summary": summaryController,
+                          "steps": stepsController,
+                          "comments": Comment,
+                        }));
+
+                    updateRecipeComments(document.id, Comment);
+                  },
+                  child: Text("Send Comment"))
+            ]),
           ),
           actions: [
             TextButton(
@@ -309,6 +375,8 @@ class _RecipeAppState extends State<RecipeApp> {
                   'ingredients': ingredientsText,
                   'summary': summary,
                   'steps': stepsText,
+                  "commentCount": 0,
+                  "comments": []
                 });
 
                 Navigator.pop(context);
@@ -331,8 +399,8 @@ class _RecipeAppState extends State<RecipeApp> {
   }
 
 //delete
-  void _deleteRecipe(DocumentSnapshot document,String ref) {
-      FirebaseStorage storage = FirebaseStorage.instance;
+  void _deleteRecipe(DocumentSnapshot document, String ref) {
+    FirebaseStorage storage = FirebaseStorage.instance;
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -438,4 +506,34 @@ Future<void> _updateRecipe(
       );
     },
   );
+}
+
+//changer comments and incrementer and counter commnets
+Future<void> updateRecipeComments(
+    String recipeId, List<String> comments) async {
+  final callable =
+      FirebaseFunctions.instance.httpsCallable('onCommentCreatedHttp');
+  try {
+    await callable.call({
+      'recipeId': recipeId,
+      'comments': comments,
+    });
+    print('Recipe comments updated successfully.');
+  } catch (e) {
+    print('Error updating recipe comments: $e');
+  }
+}
+
+
+void getRecipesByTitle() { // detaylı aramalarda Todo her bir sorguya ekle
+  FirebaseFirestore.instance
+      .collection('recipe')
+      .orderBy('name')
+      .get()
+      .then((QuerySnapshot querySnapshot) {
+    querySnapshot.docs.forEach((DocumentSnapshot documentSnapshot) {
+      // Her belge için yapılacak işlemler
+      print(documentSnapshot.data());
+    });
+  });
 }

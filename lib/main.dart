@@ -4,11 +4,11 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 import 'package:recipe/controller/storage_controller.dart';
-import 'package:recipe/signinPage.dart';
+import 'package:recipe/pages/signinPage.dart';
 
-import 'firebase_notification.dart';
-import 'recipecontrol.dart';
-import 'signupPage.dart';
+import 'controller/firebase_notification.dart';
+import 'controller/recipecontrol.dart';
+import 'pages/signupPage.dart';
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   print('Handling a background message: ${message.messageId}');

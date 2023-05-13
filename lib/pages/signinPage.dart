@@ -1,9 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:recipe/signupPage.dart';
+import 'package:recipe/pages/signupPage.dart';
 
-import 'recipecontrol.dart';
+import '../controller/recipecontrol.dart';
 
 class MyLogin extends StatefulWidget {
   const MyLogin({Key? key}) : super(key: key);
