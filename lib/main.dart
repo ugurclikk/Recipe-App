@@ -2,11 +2,11 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:get/get.dart';
 import 'package:recipe/controller/storage_controller.dart';
 import 'package:recipe/pages/signinPage.dart';
 
 import 'controller/firebase_notification.dart';
+import 'controller/local_notification_controller.dart';
 import 'controller/recipecontrol.dart';
 import 'pages/signupPage.dart';
 
@@ -22,6 +22,7 @@ void getToken() async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+   await NotificationHelper.initialize();
   await Firebase.initializeApp();
   await initMessaging();
   // FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
@@ -39,20 +40,9 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
-    return GetMaterialApp(
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        body: MyLogin(),
-        floatingActionButton: FloatingActionButton(
-          backgroundColor: Color(0xff129575),
-          child: Icon(Icons.add),
-          onPressed: () {
-            getToken();
-            //get paketi sadece router icin kullanılıyor flutter navigator sorun cıkardıgı için simdilik öğrenene kadar get kullanıyorum
-            Get.to(RecipeApp());
-          },
-        ),
-      ),
+      home: MyLogin(),
     );
   }
 }

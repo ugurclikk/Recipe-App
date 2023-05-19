@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:recipe/controller/respui_controller.dart';
 import 'package:recipe/pages/signupPage.dart';
 
 import '../controller/recipecontrol.dart';
@@ -17,9 +18,25 @@ class _MyLoginState extends State<MyLogin> {
   Widget build(BuildContext context) {
     final _formKey = GlobalKey<FormState>();
     late String _email, _password;
+    respui responsiveui = respui();
+    respui uihld = responsiveui.getinfoui(context);
     return Container(
       decoration: const BoxDecoration(),
       child: Scaffold(
+        floatingActionButton: FloatingActionButton(
+          backgroundColor: Color(0xff129575),
+          child: Icon(Icons.add),
+          onPressed: () {
+            //getToken();
+            //get paketi sadece router icin kullanılıyor flutter navigator sorun cıkardıgı için simdilik öğrenene kadar get kullanıyorum
+            //Get.to(RecipeApp());
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => RecipeApp(),
+                ));
+          },
+        ),
         backgroundColor: Colors.white,
         body: Stack(children: [
           Container(
@@ -31,6 +48,8 @@ class _MyLoginState extends State<MyLogin> {
           ),
           SingleChildScrollView(
             child: Container(
+              //width: uihld.responsiveWidth,
+              //height: uihld.responsiveWidth,
               padding: EdgeInsets.only(
                   right: 35,
                   left: 35,
@@ -119,8 +138,8 @@ class _MyLoginState extends State<MyLogin> {
                             decoration: BoxDecoration(
                                 color: Colors.green,
                                 borderRadius: BorderRadius.circular(8)),
-                            height: 60,
-                            width: 350,
+                            height: uihld.responsiveHeight,
+                            width: uihld.responsiveWidth,
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
@@ -184,7 +203,12 @@ class _MyLoginState extends State<MyLogin> {
                             Text("Don't have a account?"),
                             TextButton(
                                 onPressed: () {
-                                  Get.to(MyRegister());
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => MyRegister(),
+                                      ));
+                                  //Get.to(MyRegister());
                                 },
                                 child: Text(
                                   "Sign Up",

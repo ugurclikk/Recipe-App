@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -5,6 +7,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import 'local_notification_controller.dart';
 import 'storage_controller.dart';
 import 'firebase_notification.dart';
 
@@ -42,10 +45,46 @@ class _RecipeAppState extends State<RecipeApp> {
   final TextEditingController ingredientsController = TextEditingController();
   final TextEditingController summaryController = TextEditingController();
   final TextEditingController stepsController = TextEditingController();
+  final TextEditingController timerController = TextEditingController();
   //connection to the firebase
   final CollectionReference recipeCollection =
       FirebaseFirestore.instance.collection('recipes');
   List<String> Comment = [];
+
+  @override
+  late Timer _timer;
+  int _countdownSeconds = 300; // 5 dakika
+
+  @override
+  void initState() {
+    super.initState();
+    // startTimer();
+  }
+
+  void startTimer() {
+    const oneSec = const Duration(seconds: 1);
+    _timer = new Timer.periodic(
+      oneSec,
+      (Timer timer) => setState(
+        () {
+          if (_countdownSeconds < 1) {
+            timer.cancel();
+            NotificationHelper.showNotification();
+          } else {
+            _countdownSeconds = _countdownSeconds - 1;
+            print(_countdownSeconds);
+          }
+        },
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -242,7 +281,8 @@ class _RecipeAppState extends State<RecipeApp> {
                         return Text(document["comments"][index]);
                       },
                     ),
-                  )
+                  ),
+                  Text("Tarif Süresi(Dakika):${document["timer"]}")
                 ],
               ),
               Form(
@@ -263,6 +303,7 @@ class _RecipeAppState extends State<RecipeApp> {
                   )),
               TextButton(
                   onPressed: () async {
+                    //storage a yorumları kaydetme
                     Comment.add(controllcomment.text);
                     var nameController = document['name'];
                     var ingredientsController = document['ingredients'];
@@ -286,6 +327,13 @@ class _RecipeAppState extends State<RecipeApp> {
           ),
           actions: [
             TextButton(
+                onPressed: () {
+                  _countdownSeconds = document["timer"] * 60;
+
+                  startTimer();
+                },
+                child: Text("Sayacı Başlat")),
+            TextButton(
               onPressed: () => Navigator.pop(context),
               child: const Text('Kapat'),
             ),
@@ -301,6 +349,7 @@ class _RecipeAppState extends State<RecipeApp> {
     ingredientsController.clear();
     summaryController.clear();
     stepsController.clear();
+    timerController.clear();
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -339,6 +388,13 @@ class _RecipeAppState extends State<RecipeApp> {
                   minLines: 3,
                   maxLines: null,
                 ),
+                const SizedBox(height: 8.0),
+                TextField(
+                  controller: timerController,
+                  decoration: const InputDecoration(
+                    labelText: 'Tarif Süresi',
+                  ),
+                ),
               ],
             ),
           ),
@@ -353,11 +409,12 @@ class _RecipeAppState extends State<RecipeApp> {
                 String ingredientsText = ingredientsController.text.trim();
                 String summary = summaryController.text.trim();
                 String stepsText = stepsController.text.trim();
-
+                String timer = timerController.text;
                 if (name.isEmpty ||
                     ingredientsText.isEmpty ||
                     summary.isEmpty ||
-                    stepsText.isEmpty) {
+                    stepsText.isEmpty ||
+                    timer.isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                         content: Text('Lütfen tüm alanları doldurun')),
@@ -376,7 +433,8 @@ class _RecipeAppState extends State<RecipeApp> {
                   'summary': summary,
                   'steps': stepsText,
                   "commentCount": 0,
-                  "comments": []
+                  "comments": [],
+                  "timer": int.parse(timer)
                 });
 
                 Navigator.pop(context);
@@ -438,7 +496,8 @@ Future<void> _updateRecipe(
       TextEditingController(text: document['summary']);
   final TextEditingController stepsController =
       TextEditingController(text: document['steps']);
-
+  final TextEditingController timerController =
+      TextEditingController(text: document['timer'].toString());
   showDialog(
     context: context,
     builder: (BuildContext context) {
@@ -479,6 +538,12 @@ Future<void> _updateRecipe(
                 minLines: 5,
                 maxLines: null,
               ),
+              TextField(
+                controller: timerController,
+                decoration: const InputDecoration(
+                  hintText: 'Tarif Adı',
+                ),
+              ),
             ],
           ),
         ),
@@ -497,6 +562,7 @@ Future<void> _updateRecipe(
                 'ingredients': ingredientsController.text,
                 'summary': summaryController.text,
                 'steps': stepsController.text,
+                "timer": int.parse(timerController.text)
               });
               Navigator.pop(context);
             },
@@ -524,8 +590,8 @@ Future<void> updateRecipeComments(
   }
 }
 
-
-void getRecipesByTitle() { // detaylı aramalarda Todo her bir sorguya ekle
+void getRecipesByTitle() {
+  // detaylı aramalarda Todo her bir sorguya ekle
   FirebaseFirestore.instance
       .collection('recipe')
       .orderBy('name')
@@ -537,3 +603,23 @@ void getRecipesByTitle() { // detaylı aramalarda Todo her bir sorguya ekle
     });
   });
 }
+
+/*void startTimer(int tim) {
+  Timer _timer;
+  int _start = tim * 60;
+
+  const oneSec = const Duration(seconds: 1);
+  _timer = new Timer.periodic(
+    oneSec,
+    (Timer timer) => () {
+      if (_start < 1) {
+        timer.cancel();
+        NotificationHelper.showNotification();
+      } else {
+        _start = _start - 1;
+        print(_start);
+      }
+    },
+  );
+}
+*/
