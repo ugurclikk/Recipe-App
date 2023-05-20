@@ -1,0 +1,17 @@
+{
+    "Hello,\nWelcome Back.": "Merhaba,\nHoşgeldin.",
+    "Enter Email": "E-mail Gir",
+    "Enter Password": "Şifre Gir",
+    "Forgot Password?": "Şifremi Unuttum",
+    "Sign in": "Giriş yap",
+    "Or Sign in With": "Giriş türü seç",
+    "Don't have a account?":"Hesabınız Yok mu?",
+    "Sign Up":"Kayıt ol",
+    "Create an Account\n\nLet’s help you set up your account, it won’t take long.":"Yeni Bir hesap oluştur\n\nHesabınızı oluşturmanıza yardımcı olalım, uzun sürmeyecek",
+    "Name":"İsim",
+    "Enter Name":"İsiminizi Girin",
+    "Password":"Şifre",
+    "Reconfirm Password":"Parolayı Onayla",
+    "Or Sign up With": "Kayıt türü seç",
+    "Already a member?":"Zaten Üye misin?"
+}

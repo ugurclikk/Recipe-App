@@ -29,9 +29,12 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
+  flutter_localizations:
+    sdk: flutter
   cloud_firestore: ^4.5.1
   cloud_functions: ^4.3.0
   cupertino_icons: ^1.0.2
+  easy_localization: ^3.0.2
   firebase_auth: ^4.4.0
   firebase_core: ^2.9.0
   firebase_messaging: ^14.4.1
@@ -61,6 +64,8 @@ flutter:
   assets:
     - assets/fbbutton.png
     - assets/gbutton.png
+    - assets/translations/
+    
   #   - images/a_dot_ham.jpeg
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

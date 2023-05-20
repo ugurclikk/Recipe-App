@@ -1,10 +1,13 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:recipe/controller/respui_controller.dart';
 import 'package:recipe/pages/signupPage.dart';
-
+import 'package:get/get.dart' hide Trans;
 import '../controller/recipecontrol.dart';
+
+var flag = true;
+bool isSwitched = false;
 
 class MyLogin extends StatefulWidget {
   const MyLogin({Key? key}) : super(key: key);
@@ -16,6 +19,18 @@ class MyLogin extends StatefulWidget {
 class _MyLoginState extends State<MyLogin> {
   @override
   Widget build(BuildContext context) {
+    void setswitch(value) {
+      setState(() {
+        if (flag) {
+          context.resetLocale();
+          flag = value;
+        } else {
+          context.setLocale(Locale('tr', 'TR'));
+          flag = value;
+        }
+      });
+    }
+
     final _formKey = GlobalKey<FormState>();
     late String _email, _password;
     respui responsiveui = respui();
@@ -39,10 +54,19 @@ class _MyLoginState extends State<MyLogin> {
         ),
         backgroundColor: Colors.white,
         body: Stack(children: [
+          /* Positioned(
+              top: 30,
+              left: 330,
+              child: Switch(
+                activeTrackColor: Colors.lightGreenAccent,
+                activeColor: Colors.green,
+                value: flag,
+                onChanged: (value) => setswitch,
+              )),*/
           Container(
             padding: const EdgeInsets.only(left: 35, top: 80),
-            child: const Text(
-              "Hello,\nWelcome Back.",
+            child: Text(
+              "Hello,\nWelcome Back.".tr(),
               style: TextStyle(color: Colors.black, fontSize: 32),
             ),
           ),
@@ -59,7 +83,19 @@ class _MyLoginState extends State<MyLogin> {
                 child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text("Email"),
+                      Row(
+                        children: [
+                          Text("En"),
+                          Switch(
+                            activeTrackColor: Colors.orange,
+                            activeColor: Colors.white,
+                            value: flag,
+                            onChanged: (value) => setswitch(value),
+                          ),
+                          Text("Tr")
+                        ],
+                      ),
+                      Text("Email".tr()),
                       TextFormField(
                         onSaved: (value) => _email = value!,
                         decoration: InputDecoration(
@@ -71,14 +107,14 @@ class _MyLoginState extends State<MyLogin> {
                             borderRadius: BorderRadius.circular(10),
                             borderSide: const BorderSide(color: Colors.black),
                           ),
-                          hintText: 'Enter Email',
+                          hintText: 'Enter Email'.tr(),
                           hintStyle: const TextStyle(color: Colors.black),
                         ),
                       ),
                       const SizedBox(
                         height: 30,
                       ),
-                      Text("Enter Password"),
+                      Text("Enter Password".tr()),
                       TextFormField(
                         onSaved: (value) => _password = value!,
                         obscureText: true,
@@ -91,7 +127,7 @@ class _MyLoginState extends State<MyLogin> {
                             borderRadius: BorderRadius.circular(10),
                             borderSide: const BorderSide(color: Colors.black),
                           ),
-                          hintText: 'Enter Password',
+                          hintText: 'Enter Password'.tr(),
                           hintStyle: const TextStyle(color: Colors.black),
                         ),
                       ),
@@ -103,8 +139,8 @@ class _MyLoginState extends State<MyLogin> {
                                 builder: (context) => RecipeApp(),
                               ));
                         },
-                        child: const Text(
-                          'Forgot Password?',
+                        child: Text(
+                          'Forgot Password?'.tr(),
                           style: TextStyle(
                             fontSize: 14,
                             color: Colors.orange,
@@ -144,7 +180,7 @@ class _MyLoginState extends State<MyLogin> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text(
-                                  "Sign in",
+                                  "Sign in".tr(),
                                   style: TextStyle(
                                       color: Colors.white, fontSize: 20),
                                 ),
@@ -170,7 +206,7 @@ class _MyLoginState extends State<MyLogin> {
                               thickness: 2,
                             ),
                           ),
-                          Text("Or Sign in With"),
+                          Text("Or Sign in With".tr()),
                           Container(
                             width: 121,
                             child: Divider(
@@ -200,7 +236,7 @@ class _MyLoginState extends State<MyLogin> {
                       Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text("Don't have a account?"),
+                            Text("Don't have a account?".tr()),
                             TextButton(
                                 onPressed: () {
                                   Navigator.push(
@@ -211,10 +247,24 @@ class _MyLoginState extends State<MyLogin> {
                                   //Get.to(MyRegister());
                                 },
                                 child: Text(
-                                  "Sign Up",
+                                  "Sign Up".tr(),
                                   style: TextStyle(color: Colors.orange),
                                 ))
-                          ])
+                          ]),
+                      /*TextButton(
+                          onPressed: () {
+                            setState(() {
+                              if (flag) {
+                                context.resetLocale();
+                                flag = !flag;
+                              } else {
+                                context.setLocale(Locale('tr', 'TR'));
+                              }
+                            });
+
+                            ;
+                          },
+                          child: Text("change lang"))*/
                     ]),
               ),
             ),

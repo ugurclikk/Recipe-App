@@ -1,6 +1,6 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
 import '../controller/local_notification_controller.dart';
 import 'signinPage.dart';
@@ -40,15 +40,15 @@ class _MyRegisterState extends State<MyRegister> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Container(
-                          child: const Text(
-                            "Create an Account\n\nLet’s help you set up your account, it won’t take long.",
+                          child: Text(
+                            "Create an Account\n\nLet’s help you set up your account, it won’t take long.".tr(),
                             style: TextStyle(color: Colors.black, fontSize: 16),
                           ),
                         ),
                         SizedBox(
                           height: 18,
                         ),
-                        Text("Name"),
+                        Text("Name".tr()),
                         const SizedBox(
                           height: 10,
                         ),
@@ -62,7 +62,7 @@ class _MyRegisterState extends State<MyRegister> {
                               borderRadius: BorderRadius.circular(10),
                               borderSide: const BorderSide(color: Colors.black),
                             ),
-                            hintText: 'Enter Name',
+                            hintText: 'Enter Name'.tr(),
                             hintStyle: const TextStyle(color: Colors.black),
                           ),
                         ),
@@ -84,14 +84,14 @@ class _MyRegisterState extends State<MyRegister> {
                               borderRadius: BorderRadius.circular(10),
                               borderSide: const BorderSide(color: Colors.black),
                             ),
-                            hintText: 'Enter Email',
+                            hintText: 'Enter Email'.tr(),
                             hintStyle: const TextStyle(color: Colors.black),
                           ),
                         ),
                         const SizedBox(
                           height: 20,
                         ),
-                        Text("Password"),
+                        Text("Password".tr()),
                         const SizedBox(
                           height: 10,
                         ),
@@ -107,14 +107,14 @@ class _MyRegisterState extends State<MyRegister> {
                               borderRadius: BorderRadius.circular(10),
                               borderSide: const BorderSide(color: Colors.black),
                             ),
-                            hintText: 'Enter Password',
+                            hintText: 'Enter Password'.tr(),
                             hintStyle: const TextStyle(color: Colors.black),
                           ),
                         ),
                         const SizedBox(
                           height: 20,
                         ),
-                        Text("Reconfirm Password"),
+                        Text("Reconfirm Password".tr()),
                         const SizedBox(
                           height: 10,
                         ),
@@ -129,7 +129,7 @@ class _MyRegisterState extends State<MyRegister> {
                               borderRadius: BorderRadius.circular(10),
                               borderSide: const BorderSide(color: Colors.black),
                             ),
-                            hintText: 'Retyping Password',
+                            hintText: 'Reconfirm Password'.tr(),
                             hintStyle: const TextStyle(color: Colors.black),
                           ),
                         ),
@@ -159,7 +159,7 @@ class _MyRegisterState extends State<MyRegister> {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Text(
-                                    "Sing up",
+                                    "Sing up".tr(),
                                     style: TextStyle(color: Colors.white),
                                   ),
                                   SizedBox(
@@ -183,7 +183,7 @@ class _MyRegisterState extends State<MyRegister> {
                                 thickness: 2,
                               ),
                             ),
-                            Text("Or Sign in With"),
+                            Text("Or Sign up With".tr()),
                             Container(
                               width: 121,
                               child: Divider(
@@ -210,10 +210,9 @@ class _MyRegisterState extends State<MyRegister> {
                         Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Text("Already a member?"),
+                              Text("Already a member?".tr()),
                               TextButton(
                                 onPressed: () {
-                                  
                                   Navigator.push(
                                       context,
                                       MaterialPageRoute(
@@ -222,8 +221,8 @@ class _MyRegisterState extends State<MyRegister> {
 
                                   //Get.to(MyLogin());
                                 },
-                                child: const Text(
-                                  'Sign in',
+                                child: Text(
+                                  'Sign in'.tr(),
                                   style: TextStyle(
                                     color: Colors.orange,
                                   ),
