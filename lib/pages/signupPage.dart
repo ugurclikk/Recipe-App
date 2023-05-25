@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+// ignore: unused_import
 import '../controller/local_notification_controller.dart';
 import 'signinPage.dart';
 
